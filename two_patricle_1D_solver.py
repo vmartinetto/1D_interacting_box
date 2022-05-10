@@ -29,25 +29,20 @@ def kron(a,b):
 
 Formation of the dense Kinetic Energy Matrix using the function Kin
 
-mat = np.empty((Nx**3,Nx**3))
-
-
+mat = np.empty((Nx**2,Nx**2))
 for p in range(Nx):
     for q in range(Nx):
-        for r in range(Nx):
-            for i in range(Nx):
-                for j in range(Nx):
-                    for k in range(Nx):
-                        n = (p*Nx**2)+(q*Nx)+r
-                        m = (i*Nx**2)+(j*Nx)+k
-                        mat[n,m] = Kin(p,q,r,i,j,k)
-                        if ((n*Nx**3)+m)%1000000==0:
-                            print((n*Nx**3)+m)
-
+        for i in range(Nx):
+            for j in range(Nx):
+                n = (p*Nx)+q
+                m = (i*Nx)+j
+                mat[n,m] = Kin(p,q,i,j)
 mat = mat/dx**2
+np.fill_diagonal(mat,np.diagonal(mat)+np.tile(vext,Nx))
+
 '''
 
-def Kin(p,q,r,i,j,k):
+def Kin(p,q,i,j):
     '''
     Calculates the value of an element of the 1D three particle Kinetic
     Energy matrix given the six values p,q,r,i,j,k.
@@ -61,10 +56,9 @@ def Kin(p,q,r,i,j,k):
             The value of the kinetic energy matrix at indixes n and m given 
             the single particle basis functions are delta functions.
     '''
-    qjrk = kron(q,j)*kron(r,k)*(kron(p,i-1)-2*kron(p,i)+kron(p,i+1))
-    pirk = kron(p,i)*kron(r,k)*(kron(q,j-1)-2*kron(q,j)+kron(q,j+1))
-    qjpi = kron(q,j)*kron(p,i)*(kron(r,k-1)-2*kron(r,k)+kron(r,k+1))
-    Knm = -(1/2)*(qjrk+pirk+qjpi)
+    qj = kron(q,j)*(kron(p,i-1)-2*kron(p,i)+kron(p,i+1))
+    pi = kron(p,i)*(kron(q,j-1)-2*kron(q,j)+kron(q,j+1))
+    Knm = -(1/2)*(qj+pi)
     return Knm
 
 ###########################Soft-Coulomb Interaction Calculator#####################
@@ -87,15 +81,11 @@ def Int(Nx,dx,a):
             The soft-coulomb interaction that lies along the main diagonal of the 
             interaction matrix given delta function basis functions in a 1D box.
     '''
-    vint = np.empty(Nx**3)
+    vint = np.empty(Nx**2)
     for i in range(Nx):
         for j in range(Nx):
-            for k in range(Nx):
-                m = (i*Nx**2)+(j*Nx)+k
-                vint[m]= (1 / math.sqrt(dx ** 2 * (i-j) ** 2 + a ** 2) 
-                        + 1 / math.sqrt(dx ** 2 * (i-k) ** 2 + a ** 2) 
-                        + 1 / math.sqrt(dx ** 2 * (j-k) ** 2 + a ** 2)
-                        )
+            m = (i*Nx)+j
+            vint[m]= (1 / math.sqrt(dx ** 2 * (i-j) ** 2 + a ** 2)) 
     return vint
 
 #############################3-particle Sparse Operators##########################
@@ -112,14 +102,14 @@ def Int_sparse(Nx,dx,a):
         a: float
             The softening parameter of the soft-coulomb interaction.
     OUTPUT
-        W: scipy.sparse.dia_matrix, shape=(Nx**3,Nx**3)
+        W: scipy.sparse.dia_matrix, shape=(Nx**2,Nx**2)
             A scipy sparse matrix object with vint from Int along the main diagonal.
     '''
     vint = Int(Nx,dx,a)
-    W = spa.dia_matrix((vint,0),shape=(Nx**3,Nx**3))
+    W = spa.dia_matrix((vint,0),shape=(Nx**2,Nx**2))
     return W
 
-def Sparse_Kin_3par(Nx,dx,vext):
+def Sparse_Kin_2par(Nx,dx,vext):
     '''
     Constructs the kinetic energy matrix for three interacting particles in a 1D
     box given a delta function basis set. Using a three point centeral finite differnce for
@@ -130,26 +120,27 @@ def Sparse_Kin_3par(Nx,dx,vext):
             The number of wanted gridpoints in the 1D box.
         dx: float
             The grid spacing in the 1D box. dx*(Nx-1) = Length of box
-        vext: np,array, vector, len=Nx**3
+        vext: np,array, vector, len=Nx
             A vector containg the external potential within the 1D box. It 
-            is expandend into the dimension of each particle, made with three loops.
+            is repeated Nx**2 times over the main diagonal of K.
     OUTPUT
         K: scipy.sparse.dia_matrix, shape=(Nx**3,Nx**3) 
             A scipy sparse matrix object with the bands of the kinetic matrix as well
             as the external potnetial.
 
     '''
+
+    vext1 = spa.dia_matrix((vext,[0]),shape=(Nx,Nx))
+    vext2 = spa.kron(vext1,spa.identity(Nx)) + spa.kron(spa.identity(Nx),vext1)
+
     # make the diagonals of the sparse matrix
-    main = np.ones(Nx**3)*(3/dx**2)
-    off1 = np.ones(Nx**3-1)*(-.5/dx**2)
-    offNx = np.ones(Nx**3-Nx)*(-.5/dx**2)
-    offNx2 = np.ones(Nx**3)*(-.5/dx**2)
+    main = np.ones(Nx**2)*(2/dx**2)
+    off1 = np.ones(Nx**2-1)*(-.5/dx**2)
+    offNx = np.ones(Nx**2-Nx)*(-.5/dx**2)
 
     #add zeroes where necessary
-    for i in range(Nx**2-1):
-        off1[(Nx*(i+1))-1] = 0
     for i in range(Nx-1):
-        offNx[(Nx**2*(i+1))-Nx:(Nx**2*(i+1)+Nx)-Nx] = 0
+        off1[(Nx*(i+1))-1] = 0
 
     #pad vectors
     offu1 =  np.append([0],off1)
@@ -158,13 +149,14 @@ def Sparse_Kin_3par(Nx,dx,vext):
     offdNx = np.append(offNx, np.zeros(Nx))
 
     #construct the diagonal matrix
-    diags = np.array([main+np.tile(vext,Nx**2), offd1, offu1, offdNx, offuNx, offNx2, offNx2])
+    #diags = np.array([main+np.tile(vext,Nx), offd1, offu1, offdNx, offuNx])
+    diags = np.array([main, offd1, offu1, offdNx, offuNx])
     #print(diags)
-    K = (spa.dia_matrix((diags, [0, -1, 1, -Nx, Nx, -Nx**2, Nx**2]), 
-        shape= (Nx**3,Nx**3))
+    K = (spa.dia_matrix((diags, [0, -1, 1, -Nx, Nx]), 
+        shape= (Nx**2,Nx**2))
             )
 
-    return K
+    return K + vext2
 
 ###################################Matrix Visulization###########################
 
@@ -173,71 +165,33 @@ def Mat_view(mat):
     plt.title('Mat View')
     plt.show()
     plt.close()
-    return _
+    return 0
 
 def Sparse_mat_view(mat):
 
-    plt.spy(mat)
+    plt.spy(mat.todense())
     plt.title('Sparse Mat View')
     plt.show()
     plt.close()
-    return _
+    return 0
 
 ########################################MAIN####################################
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     Nx = 50
-    L = 6
+    L = 4
     a = .1
-=======
-    Nx = 23
-    L = 3
-    a = .01
->>>>>>> 83dc4c6584716a2fa7f1b328ee4d0d1a9f405664
     x = np.linspace(0,L,Nx)
     dx = np.abs(x[1]-x[0])
 
-    vext = np.zeros(Nx**3)
+    vext = np.zeros(len(x))
 
     for i in range(Nx):
-        for j in range(Nx):
-            for k in range(Nx):
-                m = (i*Nx**2)+(j*Nx)+k
-                if (dx*i > 1) and (dx*i < 2):
-                    vext[m] += 20
-                if (dx*i > 4) and (dx*i < 5):
-                    vext[m] += 40
-                if (dx*j > 1) and (dx*j < 2):
-                    vext[m] += 20
-                if (dx*j > 4) and (dx*j < 5):
-                    vext[m] += 40
-                if (dx*k > 1) and (dx*k < 2):
-                    vext[m] += 20
-                if (dx*k > 4) and (dx*k < 5):
-                    vext[m] += 40
+        if (dx*i > 1) and (dx*i < 2):
+            vext[i] = 20
 
-    '''
-    for i in range(Nx):
-        if (dx*i > 4) and (dx*i < 8):
-            vext[i] = 80
-        if (dx*i > 12) and (dx*i < 16):
-            vext[i] = 80
-        if (dx*i > 20) and (dx*i < 24):
-            vext[i] = 320
-    '''
-    K = Sparse_Kin_3par(Nx,dx,vext)
-<<<<<<< HEAD
-    K0 = Sparse_Kin_3par(Nx,dx,np.zeros(Nx))
-=======
->>>>>>> 83dc4c6584716a2fa7f1b328ee4d0d1a9f405664
+    K = Sparse_Kin_2par(Nx,dx,vext)
     V = Int_sparse(Nx,dx,a)
     ham = K+V
     vals, vecs = eigsh(ham, which='SA')
-    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws.dat', vecs, fmt='%.9e', delimiter=' ')
-    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws_vals.dat', vals, fmt='%.9e', delimiter=' ')
-    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws_vext.dat', vext, fmt='%.9e', delimiter=' ')
-
-    for i in range(len(vecs[0,:])):
-        print('eval: ',vals[i])
-        print('kinetic: ',vecs[:,i].dot(K0.dot(vecs[:,i])))
+    np.savetxt('2part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_sparse_kron.dat', vecs, fmt='%.9e', delimiter=' ')
