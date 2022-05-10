@@ -192,6 +192,9 @@ if __name__ == '__main__':
     x = np.linspace(0,L,Nx)
     dx = np.abs(x[1]-x[0])
 
+    leftwall = 20
+    rightwall = 80
+
     vext = np.zeros(Nx**3)
 
     for i in range(Nx):
@@ -201,24 +204,24 @@ if __name__ == '__main__':
                 if (dx*i > 1) and (dx*i < 2):
                     vext[m] += 20
                 if (dx*i > 4) and (dx*i < 5):
-                    vext[m] += 40
+                    vext[m] += rightwall
                 if (dx*j > 1) and (dx*j < 2):
                     vext[m] += 20
                 if (dx*j > 4) and (dx*j < 5):
-                    vext[m] += 40
+                    vext[m] += rightwall
                 if (dx*k > 1) and (dx*k < 2):
                     vext[m] += 20
                 if (dx*k > 4) and (dx*k < 5):
-                    vext[m] += 40
+                    vext[m] += rightwall
 
     K = Sparse_Kin_3par(Nx,dx,vext)
     K0 = Sparse_Kin_3par(Nx,dx,np.zeros(Nx**3))
     V = Int_sparse(Nx,dx,a)
     ham = K+V
     vals, vecs = eigsh(ham, which='SA')
-    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws.dat', vecs, fmt='%.9e', delimiter=' ')
-    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws_vals.dat', vals, fmt='%.9e', delimiter=' ')
-    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws_vext.dat', vext, fmt='%.9e', delimiter=' ')
+    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2080_sws.dat', vecs, fmt='%.9e', delimiter=' ')
+    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2080_sws_vals.dat', vals, fmt='%.9e', delimiter=' ')
+    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2080_sws_vext.dat', vext, fmt='%.9e', delimiter=' ')
 
     for i in range(len(vecs[0,:])):
         print('eval: ',vals[i])
