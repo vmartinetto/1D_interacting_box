@@ -130,9 +130,9 @@ def Sparse_Kin_3par(Nx,dx,vext):
             The number of wanted gridpoints in the 1D box.
         dx: float
             The grid spacing in the 1D box. dx*(Nx-1) = Length of box
-        vext: np,array, vector, len=Nx
+        vext: np,array, vector, len=Nx**3
             A vector containg the external potential within the 1D box. It 
-            is repeated Nx**2 times over the main diagonal of K.
+            is expandend into the dimension of each particle, made with three loops.
     OUTPUT
         K: scipy.sparse.dia_matrix, shape=(Nx**3,Nx**3) 
             A scipy sparse matrix object with the bands of the kinetic matrix as well
@@ -159,7 +159,7 @@ def Sparse_Kin_3par(Nx,dx,vext):
 
     #construct the diagonal matrix
     diags = np.array([main+np.tile(vext,Nx**2), offd1, offu1, offdNx, offuNx, offNx2, offNx2])
-    print(diags)
+    #print(diags)
     K = (spa.dia_matrix((diags, [0, -1, 1, -Nx, Nx, -Nx**2, Nx**2]), 
         shape= (Nx**3,Nx**3))
             )
@@ -186,22 +186,49 @@ def Sparse_mat_view(mat):
 ########################################MAIN####################################
 
 if __name__ == '__main__':
-    Nx = 23
-    L = 3
+    Nx = 50
+    L = 6
+    a = .1
     x = np.linspace(0,L,Nx)
     dx = np.abs(x[1]-x[0])
 
-    vext = np.zeros(len(x))
+    vext = np.zeros(Nx**3)
 
-'''
     for i in range(Nx):
-        if (dx*i > .25) and (dx*i < .75):
-            vext[i] = 20
-'''
+        for j in range(Nx):
+            for k in range(Nx):
+                m = (i*Nx**2)+(j*Nx)+k
+                if (dx*i > 1) and (dx*i < 2):
+                    vext[m] += 20
+                if (dx*i > 4) and (dx*i < 5):
+                    vext[m] += 40
+                if (dx*j > 1) and (dx*j < 2):
+                    vext[m] += 20
+                if (dx*j > 4) and (dx*j < 5):
+                    vext[m] += 40
+                if (dx*k > 1) and (dx*k < 2):
+                    vext[m] += 20
+                if (dx*k > 4) and (dx*k < 5):
+                    vext[m] += 40
 
+    '''
+    for i in range(Nx):
+        if (dx*i > 4) and (dx*i < 8):
+            vext[i] = 80
+        if (dx*i > 12) and (dx*i < 16):
+            vext[i] = 80
+        if (dx*i > 20) and (dx*i < 24):
+            vext[i] = 320
+    '''
     K = Sparse_Kin_3par(Nx,dx,vext)
-    V = Int_sparse(Nx,dx,.01)
+    K0 = Sparse_Kin_3par(Nx,dx,np.zeros(Nx))
+    V = Int_sparse(Nx,dx,a)
     ham = K+V
     vals, vecs = eigsh(ham, which='SA')
-    np.savetxt('3part_Nx'+str(Nx)+'_L'+str(L)+'_sc.01_sparse.dat', vecs, fmt='%.9e', delimiter=' ')
+    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws.dat', vecs, fmt='%.9e', delimiter=' ')
+    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws_vals.dat', vals, fmt='%.9e', delimiter=' ')
+    np.savetxt('data/3part_Nx'+str(Nx)+'_L'+str(L)+'_sc'+str(a)+'_2040_sws_vext.dat', vext, fmt='%.9e', delimiter=' ')
 
+    for i in range(len(vecs[0,:])):
+        print('eval: ',vals[i])
+        print('kinetic: ',vecs[:,i].dot(K0.dot(vecs[:,i])))
