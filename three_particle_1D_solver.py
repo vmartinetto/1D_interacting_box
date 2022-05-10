@@ -212,6 +212,7 @@ if __name__ == '__main__':
                     vext[m] += 40
 
     K = Sparse_Kin_3par(Nx,dx,vext)
+    K0 = Sparse_Kin_3par(Nx,dx,np.zeros(Nx**3))
     V = Int_sparse(Nx,dx,a)
     ham = K+V
     vals, vecs = eigsh(ham, which='SA')
