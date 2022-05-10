@@ -211,17 +211,7 @@ if __name__ == '__main__':
                 if (dx*k > 4) and (dx*k < 5):
                     vext[m] += 40
 
-    '''
-    for i in range(Nx):
-        if (dx*i > 4) and (dx*i < 8):
-            vext[i] = 80
-        if (dx*i > 12) and (dx*i < 16):
-            vext[i] = 80
-        if (dx*i > 20) and (dx*i < 24):
-            vext[i] = 320
-    '''
     K = Sparse_Kin_3par(Nx,dx,vext)
-    K0 = Sparse_Kin_3par(Nx,dx,np.zeros(Nx))
     V = Int_sparse(Nx,dx,a)
     ham = K+V
     vals, vecs = eigsh(ham, which='SA')
