@@ -158,7 +158,7 @@ def Sparse_Kin_3par(Nx,dx,vext):
     offdNx = np.append(offNx, np.zeros(Nx))
 
     #construct the diagonal matrix
-    diags = np.array([main+np.tile(vext,Nx**2), offd1, offu1, offdNx, offuNx, offNx2, offNx2])
+    diags = np.array([main+vext, offd1, offu1, offdNx, offuNx, offNx2, offNx2])
     #print(diags)
     K = (spa.dia_matrix((diags, [0, -1, 1, -Nx, Nx, -Nx**2, Nx**2]), 
         shape= (Nx**3,Nx**3))
