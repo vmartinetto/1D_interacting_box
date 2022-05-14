@@ -150,14 +150,20 @@ def Piers_Neck_War(x,r,vexact,density,accel,conv):
     return vxc, valsg, vecsg
 
 def Piers_Neck_War_Ion(x,r,fr,Ie,vexact,density,accel,conv):
+    # initalize the convergence
     number = np.Inf
+
+    #intialize vxc guess and construct hailtonian
     vxc = -((3/np.pi)*density)**(1/3)
     diag = np.ones(Nx)/dx**2
     diags = np.array([vexact+vxc+diag, diag/-2, diag/-2])
     HSguess= spa.dia_matrix((diags,[0,-1,1]),shape=s)
     valsg, vecsg = eigsh(HSguess,which='SA')
+
+    # construct first guess density
     gdens = ground(vecsg,[2])
     gdens = 2/(simps(gdens,x))*gdens
+
     while number > conv:
         vxc = vxc + accel[0]*r**accel[1]*(gdens-density) + (-valsg[0]-Ie)*fr
         
@@ -190,8 +196,8 @@ def Piers_Neck_War_Ion(x,r,fr,Ie,vexact,density,accel,conv):
 
 # define the size, number of points, and the 1D grid
 
-Lx=6
-Nx=1001
+Lx=8
+Nx=1000
 x = np.linspace(0, Lx, Nx)
 
 # Define dx
@@ -212,14 +218,16 @@ for i in range(Nx):
     if (dx*i > 1) and (dx*i < 2):
         vext[i] = 20
     if (dx*i > 4) and (dx*i < 5):
-        vext[i] = 30
+        vext[i] = 200
+    if (dx*i > 6) and (dx*i < 7):
+        vext[i] = 400
 
 
 ########################Import Data#################################################
 
 
-#Import density for N=1001 and x = np.linspace(0, 6, Nx)
-density=np.genfromtxt('denspy-1001-9-2030.dat')
+#Import density for N=1000 and x = np.linspace(0, 6, Nx)
+density=np.genfromtxt('../2data/2part_Nx1000_L8_sc0.1_20200400_swss_ground_dens.dat')
 
 
 ########################Calculate Interacting ensemble density######################
@@ -297,7 +305,7 @@ density = (2/simps(density,x))*density
 print('beginiing inversion')
 #vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0005)
 
-accel = [1,2.5,1,3]
+accel = [1,2.5,2,2]
 
 L = 1
 r = L-np.abs(np.linspace(-L,L,Nx))
@@ -305,9 +313,9 @@ f1  =np.heaviside(1,r)*r**accel[2]
 f2 = np.heaviside(r,1)/(r**accel[3]+1) 
 f3 = f1+f2
 
-Ie = -4.703283906868827
+Ie = -4.929375463
 
-vinv, valsg, vecsg = Piers_Neck_War_Ion(x,r,f3,Ie,vH+vext,density,accel,.005)
+vinv, valsg, vecsg = Piers_Neck_War_Ion(x,r,f3,Ie,vH+vext,density,accel,.0005)
 plt.plot(vinv)
 plt.show()
 plt.close()
@@ -341,7 +349,7 @@ plt.close()
 
 #save ensemble KS eigenfunctions, Eigenvalues, and Potential
 
-np.savetxt('vxc_ION_1001_9-2030.dat', vinv, fmt='%.9e', delimiter=' ')
-np.savetxt('vks_ION_1001_9-2030.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
-np.savetxt('evecs_ION_1001_9-2030.dat', vecsg, fmt='%.9e', delimiter=' ')
-np.savetxt('evals_ION_1001_9-2030.dat', valsg, fmt='%.9e', delimiter=' ')
+np.savetxt('vxc_ION_1000_9-2030.dat', vinv, fmt='%.9e', delimiter=' ')
+np.savetxt('vks_ION_1000_9-2030.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
+np.savetxt('evecs_ION_1000_9-2030.dat', vecsg, fmt='%.9e', delimiter=' ')
+np.savetxt('evals_ION_1000_9-2030.dat', valsg, fmt='%.9e', delimiter=' ')
