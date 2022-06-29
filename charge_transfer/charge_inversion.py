@@ -316,9 +316,9 @@ f3 = f1+f2
 Ie = -4.929375463
 
 vinv, valsg, vecsg = Piers_Neck_War_Ion(x,r,f3,Ie,vH+vext,density,accel,.0005)
-plt.plot(vinv)
-plt.show()
-plt.close()
+#plt.plot(vinv)
+#plt.show()
+#plt.close()
 
 
 ###########################Plotting###################################

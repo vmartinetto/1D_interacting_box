@@ -9,6 +9,7 @@ from scipy.integrate import simps
 from scipy.special import hyp2f1
 from numpy.linalg import inv
 from scipy import interpolate
+import sys
 
 #########################Define Soft-Coulomb matrix#################################
 
@@ -238,6 +239,9 @@ def Piers_Neck_War_Ion(x,r,fr,Ie,vexact,density,accel,conv):
 
 #########################Define Variables###########################################
 
+# weight is read from command line input
+
+gw = .125
 
 # define the size, number of points, and the 1D grid
 
@@ -280,7 +284,6 @@ density1 = densities[:,1]
 ########################Calculate Interacting ensemble density######################
 
 
-gw=0.125
 density= (1-gw)*densityGS + gw*density1
 
 ########################Interpolation?##############################################
@@ -331,7 +334,7 @@ print('beginiing inversion')
 #vinv, valsg, vecsg = Lee_Bar_Inv_Ens(vinv,gdens,density,gw,.0000005)
 #vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0005)
 
-accel = [2,2.5]
+accel = [3,2.5]
 
 L = 4
 r = L-np.abs(np.linspace(-L,L,Nx))
@@ -341,7 +344,7 @@ r = L-np.abs(np.linspace(-L,L,Nx))
 
 #Ie = -4.929375463
 
-vinv, valsg, vecsg = Piers_Neck_War_Ens(x,r,vH+vext,density,accel,gw,.05)
+vinv, valsg, vecsg = Piers_Neck_War_Ens(x,r,vH+vext,density,accel,gw,.005)
 #plt.plot(vinv)
 #plt.show()
 #plt.close()
@@ -375,7 +378,7 @@ vinv, valsg, vecsg = Piers_Neck_War_Ens(x,r,vH+vext,density,accel,gw,.05)
 
 #save ensemble KS eigenfunctions, Eigenvalues, and Potential
 
-np.savetxt('ens_vxc_ION_1000_9-2030.dat', vinv, fmt='%.9e', delimiter=' ')
-np.savetxt('ens_vks_ION_1000_9-2030.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
-np.savetxt('ens_evecs_ION_1000_9-2030.dat', vecsg, fmt='%.9e', delimiter=' ')
-np.savetxt('ens_evals_ION_1000_9-2030.dat', valsg, fmt='%.9e', delimiter=' ')
+np.savetxt('ens_gw'+str(gw)+'_vxc_ION_1000_9-2030.dat', vinv, fmt='%.9e', delimiter=' ')
+np.savetxt('ens_gw'+str(gw)+'_vks_ION_1000_9-2030.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
+np.savetxt('ens_gw'+str(gw)+'_evecs_ION_1000_9-2030.dat', vecsg, fmt='%.9e', delimiter=' ')
+np.savetxt('ens_gw'+str(gw)+'_evals_ION_1000_9-2030.dat', valsg, fmt='%.9e', delimiter=' ')
