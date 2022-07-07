@@ -271,7 +271,7 @@ Ex, vX = LDA_exchange(density,dx)
 Ec, vC = LDA_correlation(density,dx)
 
 #normalize
-density = (2/simps(density,x))*density
+#density = (2/simps(density,x))*density
 
 # Inintial KS eigenfunctions 
 
@@ -280,21 +280,21 @@ density = (2/simps(density,x))*density
 #vXm = 1
 #vCm = 1
 
-#diag = np.ones(Nx)/dx**2
-#diags = np.array([(vextm*vext)+(vHm*vH)+(vXm*vX)+(vCm*vC)+diag, diag/-2, diag/-2])
-#HSguess= spa.dia_matrix((diags,[0,-1,1]),shape=s)
-#valsg, vecsg = eigsh(HSguess,which='SA')
+diag = np.ones(Nx)/dx**2
+diags = np.array([vext+vH+diag, diag/-2, diag/-2])
+HSguess= spa.dia_matrix((diags,[0,-1,1]),shape=s)
+valsg, vecsg = eigsh(HSguess,which='SA')
 
 # Initial KS density 
 
-#gdens = ground(vecsg,[2])
-#plt.plot(gdens)
-#plt.show()
-#plt.close()
+gdens = ground(vecsg,[2])
+plt.plot(gdens)
+plt.show()
+plt.close()
 
 # the potential updated is a copy of the hartree potential
 
-#vinv=np.copy(vh)
+vinv=np.copy(vH)
 #vinv = np.copy(vext)
 #vinv = (vextm*vext)+(vHm*vH)+(vXm*vX)+(vCm*vC)
 #plt.plot(vinv)
@@ -304,19 +304,19 @@ density = (2/simps(density,x))*density
 ###########################Inversion###################################
 
 print('beginiing inversion')
-#vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0005)
+vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0005)
 
-accel = [1,2.5,2,2]
+#accel = [1,2.5,2,2]
 
-L = 1
-r = L-np.abs(np.linspace(-L,L,Nx))
-f1  =np.heaviside(1,r)*r**accel[2]
-f2 = np.heaviside(r,1)/(r**accel[3]+1) 
-f3 = f1+f2
+#L = 1
+#r = L-np.abs(np.linspace(-L,L,Nx))
+#f1  =np.heaviside(1,r)*r**accel[2]
+#f2 = np.heaviside(r,1)/(r**accel[3]+1) 
+#f3 = f1+f2
 
-Ie = -2.745910447e+01
+#Ie = -2.745910447e+01
 
-vinv, valsg, vecsg = Piers_Neck_War_Ion(x,r,f3,Ie,vH+vext,density,accel,.0005)
+#vinv, valsg, vecsg = Piers_Neck_War_Ion(x,r,f3,Ie,vH+vext,density,accel,.0005)
 #plt.plot(vinv)
 #plt.show()
 #plt.close()
@@ -350,7 +350,7 @@ vinv, valsg, vecsg = Piers_Neck_War_Ion(x,r,f3,Ie,vH+vext,density,accel,.0005)
 
 #save ensemble KS eigenfunctions, Eigenvalues, and Potential
 
-np.savetxt('vxc_ION_1000_9_L=1+a=0.1.dat', vinv, fmt='%.9e', delimiter=' ')
-np.savetxt('vks_ION_1000_9_L=1+a=0.1.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
-np.savetxt('evecs_ION_1000_9_L=1+a=0.1.dat', vecsg, fmt='%.9e', delimiter=' ')
-np.savetxt('evals_ION_1000_9_L=1+a=0.1.dat', valsg, fmt='%.9e', delimiter=' ')
+np.savetxt('vxc_ION_1000_9_L=1+a=0.1_LB.dat', vinv, fmt='%.9e', delimiter=' ')
+np.savetxt('vks_ION_1000_9_L=1+a=0.1_LB.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
+np.savetxt('evecs_ION_1000_9_L=1+a=0.1_LB.dat', vecsg, fmt='%.9e', delimiter=' ')
+np.savetxt('evals_ION_1000_9_L=1+a=0.1_LB.dat', valsg, fmt='%.9e', delimiter=' ')
