@@ -227,7 +227,7 @@ vext = np.zeros(Nx)
 
 
 #Import density for N=1000 and x = np.linspace(0, 6, Nx)
-density=np.genfromtxt('../2data/2part_Nx1000_L1_sc0.1_dens.dat')
+density=np.genfromtxt('../2data/2part_Nx1000_L9_sc0.1_dens.dat')
 density=density[:,-1]
 
 
@@ -350,7 +350,7 @@ vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0005)
 
 #save ensemble KS eigenfunctions, Eigenvalues, and Potential
 
-np.savetxt('vxc_ION_1000_9_L=1+a=0.1_LB.dat', vinv, fmt='%.9e', delimiter=' ')
-np.savetxt('vks_ION_1000_9_L=1+a=0.1_LB.dat', vinv+vH+vext, fmt='%.9e', delimiter = ' ')
-np.savetxt('evecs_ION_1000_9_L=1+a=0.1_LB.dat', vecsg, fmt='%.9e', delimiter=' ')
-np.savetxt('evals_ION_1000_9_L=1+a=0.1_LB.dat', valsg, fmt='%.9e', delimiter=' ')
+np.savetxt('vxc_ION_1000_9_L=9+a=0.1_LB.dat', vinv-vH, fmt='%.9e', delimiter=' ')
+np.savetxt('vks_ION_1000_9_L=9+a=0.1_LB.dat', vinv, fmt='%.9e', delimiter = ' ')
+np.savetxt('evecs_ION_1000_9_L=9+a=0.1_LB.dat', vecsg, fmt='%.9e', delimiter=' ')
+np.savetxt('evals_ION_1000_9_L=9+a=0.1_LB.dat', valsg, fmt='%.9e', delimiter=' ')
