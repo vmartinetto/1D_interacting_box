@@ -76,26 +76,27 @@ def LDA_correlation(n,dx):
 def Lee_Bar_Inv(vinv,gdens,density,conv):
     Nx = len(density)
     number = np.Inf
+    print('conv criterion: ',conv)
     print('before loop')
     while  number > conv:
         print('in loop')
         vinv = gdens*vinv/density # prev implemented
         #vinv = vinv*(gdens/density)
-        plt.plot(vinv)
-        plt.show()
-        plt.close()
+        #plt.plot(vinv)
+        #plt.show()
+        #plt.close()
         diags = np.array([vinv+diag, diag/-2, diag/-2])
         HSguess= spa.dia_matrix((diags,[0,-1,1]),shape=(Nx,Nx))
         print('diag')
         valsg, vecsg = eigsh(HSguess,which='SA')
         print('ground')
         gdens = ground(vecsg,[2])
-        plt.plot(gdens-density,label='diff')
-        plt.plot(density,label='density')
-        plt.plot(gdens,label='gdens')
-        plt.legend()
-        plt.show()
-        plt.close()
+        #plt.plot(gdens-density,label='diff')
+        #plt.plot(density,label='density')
+        #plt.plot(gdens,label='gdens')
+        #plt.legend()
+        #plt.show()
+        #plt.close()
         number=(np.abs(np.ones(Nx)-gdens/density)).max()
         print(np.abs(gdens-density).max())
         print(number)
@@ -196,7 +197,7 @@ def Piers_Neck_War_Ion(x,r,fr,Ie,vexact,density,accel,conv):
 
 # define the size, number of points, and the 1D grid
 
-Lx=1
+Lx=9
 Nx=1000
 x = np.linspace(0, Lx, Nx)
 
@@ -304,7 +305,7 @@ vinv=np.copy(vH)
 ###########################Inversion###################################
 
 print('beginiing inversion')
-vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0005)
+vinv, valsg, vecsg = Lee_Bar_Inv(vinv,gdens,density,.0008)
 
 #accel = [1,2.5,2,2]
 
